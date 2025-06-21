@@ -79,4 +79,3 @@ def generate_quittance(building, index):
         return render_template_string(html)
     except Exception as e:
         return f"<h3>Erreur quittance:</h3><pre>{e}</pre>"
-
