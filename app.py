@@ -20,8 +20,13 @@ def list_buildings():
             html += f"<li><a href='/building/{tab.title}'>{tab.title}</a></li>"
         html += "</ul>"
         return render_template_string(html)
+   import traceback
+
+...
+
     except Exception as e:
-        return f"<h3>Erreur Google Sheet:</h3><pre>{str(e)}</pre>"
+        return f"<h3>Erreur Google Sheet:</h3><pre>{traceback.format_exc()}</pre>"
+
 
 @app.route("/building/<name>")
 def show_building(name):
@@ -34,7 +39,13 @@ def show_building(name):
             html += "<tr>" + "".join([f"<td>{cell}</td>" for cell in row]) + "</tr>"
         html += "</table><br><a href='/'>← Retour</a>"
         return render_template_string(html)
+ import traceback
+
+...
+
     except Exception as e:
-        return f"<h3>Erreur: {name}</h3><pre>{str(e)}</pre>"
+        return f"<h3>Erreur Google Sheet:</h3><pre>{traceback.format_exc()}</pre>"
+
+
 
 
