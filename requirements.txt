@@ -1,0 +1,6 @@
+flask
+gunicorn
+jinja2
+gspread
+oauth2client
+weasyprint
