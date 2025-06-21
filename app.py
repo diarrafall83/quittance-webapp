@@ -37,3 +37,4 @@ def show_building(name):
     except Exception as e:
         return f"<h3>Erreur: {name}</h3><pre>{str(e)}</pre>"
 
+
