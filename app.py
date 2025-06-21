@@ -42,14 +42,41 @@ def show_building(name):
         ws = sheet.worksheet(name)
         rows = ws.get_all_values()
         html = f"<h2>👥 Locataires - {name}</h2><table border='1'>"
-        for row in rows:
-            html += "<tr>" + "".join([f"<td>{cell}</td>" for cell in row]) + "</tr>"
+        for i, row in enumerate(rows):
+            html += "<tr>"
+            for cell in row:
+                html += f"<td>{cell}</td>"
+            if i == 0:
+                html += "<td>Action</td>"
+            else:
+                html += f"<td><a href='/quittance/{name}/{i}'>🧾 Générer</a></td>"
+            html += "</tr>"
         html += "</table><br><a href='/'>← Retour</a>"
         return render_template_string(html)
     except Exception as e:
         return f"<h3>Erreur: {name}</h3><pre>{e}</pre>"
 
+@app.route("/quittance/<building>/<int:index>")
+def generate_quittance(building, index):
+    try:
+        sheet = get_gsheet()
+        ws = sheet.worksheet(building)
+        rows = ws.get_all_values()
+        header = rows[0]
+        tenant = rows[index]
 
+        tenant_data = dict(zip(header, tenant))
 
-
+        html = f"""
+        <h2>🧾 Quittance de loyer</h2>
+        <p><strong>Nom:</strong> {tenant_data.get('NOM', 'Inconnu')}</p>
+        <p><strong>Appartement:</strong> {tenant_data.get('APT', '')}</p>
+        <p><strong>Bâtiment:</strong> {building}</p>
+        <p><strong>Loyer:</strong> {tenant_data.get('TTC', tenant_data.get('LOYER', ''))} €</p>
+        <p><strong>Mois:</strong> [À compléter]</p>
+        <br><a href='/building/{building}'>← Retour à {building}</a>
+        """
+        return render_template_string(html)
+    except Exception as e:
+        return f"<h3>Erreur quittance:</h3><pre>{e}</pre>"
 
