@@ -1,14 +1,26 @@
 from flask import Flask, render_template_string, redirect, url_for
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import traceback
+import os
 
 app = Flask(__name__)
 
 def get_gsheet():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("/etc/secrets/credentials.json", scope)
-    client = gspread.authorize(creds)
-    return client.open_by_key("1mvEss9g3h1-Fekf9tWt41_GoaK6DStP2GmtT96v1hMY")
+    try:
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        path = "/etc/secrets/credentials.json"
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Credentials not found at {path}")
+
+        creds = ServiceAccountCredentials.from_json_keyfile_name(path, scope)
+        client = gspread.authorize(creds)
+        return client.open_by_key("1mvEss9g3h1-Fekf9tWt41_GoaK6DStP2GmtT96v1hMY")
+    except Exception as e:
+        raise RuntimeError(f"🔴 get_gsheet() error:\n{traceback.format_exc()}")
 
 @app.route("/")
 def list_buildings():
@@ -20,13 +32,8 @@ def list_buildings():
             html += f"<li><a href='/building/{tab.title}'>{tab.title}</a></li>"
         html += "</ul>"
         return render_template_string(html)
-   import traceback
-
-...
-
     except Exception as e:
-        return f"<h3>Erreur Google Sheet:</h3><pre>{traceback.format_exc()}</pre>"
-
+        return f"<h3>Erreur Google Sheet:</h3><pre>{e}</pre>"
 
 @app.route("/building/<name>")
 def show_building(name):
@@ -39,12 +46,9 @@ def show_building(name):
             html += "<tr>" + "".join([f"<td>{cell}</td>" for cell in row]) + "</tr>"
         html += "</table><br><a href='/'>← Retour</a>"
         return render_template_string(html)
- import traceback
-
-...
-
     except Exception as e:
-        return f"<h3>Erreur Google Sheet:</h3><pre>{traceback.format_exc()}</pre>"
+        return f"<h3>Erreur: {name}</h3><pre>{e}</pre>"
+
 
 
 
