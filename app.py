@@ -37,7 +37,13 @@ def list_buildings():
     except Exception as e:
         return f"<h3>Erreur Google Sheet:</h3><pre>{e}</pre>"
 
-@app.route("/building/<name>", methods=['GET'])
+from urllib.parse import unquote
+
+@app.route("/building/<path:name>", methods=['GET'])
+def show_building(name):
+    name = unquote(name)
+    ...
+
 def show_building(name):
     try:
         month = request.args.get("month") or datetime.now().strftime("%B")
