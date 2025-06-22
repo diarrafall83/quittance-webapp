@@ -1,4 +1,4 @@
-rom flask import Flask, render_template_string, render_template, redirect, url_for, make_response, request
+from flask import Flask, render_template_string, render_template, redirect, url_for, make_response, request
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from weasyprint import HTML
