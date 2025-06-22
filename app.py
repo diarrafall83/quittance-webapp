@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, redirect, url_for
+from flask import Flask, render_template_string, render_template, redirect, url_for
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import traceback
@@ -66,16 +66,13 @@ def generate_quittance(building, index):
         tenant = rows[index]
 
         tenant_data = dict(zip(header, tenant))
+        tenant_data['building'] = building
+        tenant_data['month_label'] = "Juin 2025"  # placeholder
+        tenant_data['start_date'] = "01/06/2025"
+        tenant_data['end_date'] = "30/06/2025"
+        tenant_data['issue_date'] = "01/06/2025"
 
-        html = f"""
-        <h2>🧾 Quittance de loyer</h2>
-        <p><strong>Nom:</strong> {tenant_data.get('NOM', 'Inconnu')}</p>
-        <p><strong>Appartement:</strong> {tenant_data.get('APT', '')}</p>
-        <p><strong>Bâtiment:</strong> {building}</p>
-        <p><strong>Loyer:</strong> {tenant_data.get('TTC', tenant_data.get('LOYER', ''))} €</p>
-        <p><strong>Mois:</strong> [À compléter]</p>
-        <br><a href='/building/{building}'>← Retour à {building}</a>
-        """
-        return render_template_string(html)
+        return render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'])
     except Exception as e:
         return f"<h3>Erreur quittance:</h3><pre>{e}</pre>"
+
