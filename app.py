@@ -26,50 +26,16 @@ def get_gsheet():
 
 @app.route("/")
 def list_buildings():
-    return redirect(url_for('dashboard'))
-
-@app.route("/dashboard", methods=["GET", "POST"])
-def dashboard():
     try:
-        month = request.form.get("month") or datetime.now().strftime("%B")
-        year = request.form.get("year") or datetime.now().strftime("%Y")
-
         sheet = get_gsheet()
-        total_buildings = 0
-        total_tenants = 0
-        total_rent = 0
-
-        for ws in sheet.worksheets():
-            rows = ws.get_all_values()
-            total_buildings += 1
-            total_tenants += len(rows) - 1
-            header = rows[0]
-            ttc_index = header.index("TTC") if "TTC" in header else -1
-            if ttc_index >= 0:
-                for row in rows[1:]:
-                    try:
-                        value = row[ttc_index].replace(" ", "").replace("FCFA", "")
-                        total_rent += int(value)
-                    except:
-                        pass
-
-        html = f"""
-        <h1>📊 Tableau de Bord</h1>
-        <form method='post'>
-            Mois: <input name='month' value='{month}'>
-            Année: <input name='year' value='{year}'>
-            <button type='submit'>Filtrer</button>
-        </form>
-        <ul>
-            <li>🏢 Nombre d'immeubles: <strong>{total_buildings}</strong></li>
-            <li>👥 Total locataires: <strong>{total_tenants}</strong></li>
-            <li>💰 Total TTC estimé pour {month} {year}: <strong>{total_rent:,} FCFA</strong></li>
-        </ul>
-        <a href='/'>← Voir la liste des bâtiments</a>
-        """
+        tabs = sheet.worksheets()
+        html = "<h2>🏢 Sélectionner un bâtiment</h2><ul>"
+        for tab in tabs:
+            html += f"<li><a href='/building/{tab.title}'>{tab.title}</a></li>"
+        html += "</ul>"
         return render_template_string(html)
     except Exception as e:
-        return f"<h3>Erreur Dashboard:</h3><pre>{e}</pre>"
+        return f"<h3>Erreur Google Sheet:</h3><pre>{e}</pre>"
 
 # Existing routes (building, quittance generation, PDF, batch) remain unchanged below...
 # [content truncated for brevity]
