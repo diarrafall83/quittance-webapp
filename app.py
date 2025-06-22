@@ -1,6 +1,7 @@
-from flask import Flask, render_template_string, render_template, redirect, url_for
+from flask import Flask, render_template_string, render_template, redirect, url_for, make_response
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from weasyprint import HTML
 import traceback
 import os
 
@@ -49,7 +50,7 @@ def show_building(name):
             if i == 0:
                 html += "<td>Action</td>"
             else:
-                html += f"<td><a href='/quittance/{name}/{i}'>🧾 Générer</a></td>"
+                html += f"<td><a href='/quittance/{name}/{i}'>🧾 Générer</a> | <a href='/quittance/{name}/{i}/pdf'>📄 PDF</a></td>"
             html += "</tr>"
         html += "</table><br><a href='/'>← Retour</a>"
         return render_template_string(html)
@@ -75,4 +76,31 @@ def generate_quittance(building, index):
         return render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'])
     except Exception as e:
         return f"<h3>Erreur quittance:</h3><pre>{e}</pre>"
+
+@app.route("/quittance/<building>/<int:index>/pdf")
+def quittance_pdf(building, index):
+    try:
+        sheet = get_gsheet()
+        ws = sheet.worksheet(building)
+        rows = ws.get_all_values()
+        header = rows[0]
+        tenant = rows[index]
+
+        tenant_data = dict(zip(header, tenant))
+        tenant_data['building'] = building
+        tenant_data['month_label'] = "Juin 2025"
+        tenant_data['start_date'] = "01/06/2025"
+        tenant_data['end_date'] = "30/06/2025"
+        tenant_data['issue_date'] = "01/06/2025"
+
+        html_out = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'])
+        pdf = HTML(string=html_out).write_pdf()
+
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'inline; filename=quittance_{tenant_data.get("NOM", "tenant")}.pdf'
+        return response
+    except Exception as e:
+        return f"<h3>Erreur PDF:</h3><pre>{e}</pre>"
+
 
