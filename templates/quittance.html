@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Quittance de Loyer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .header img { height: 80px; }
+        .header .title { text-align: center; flex-grow: 1; font-size: 22px; font-weight: bold; text-transform: uppercase; }
+        .header .amount { font-size: 18px; font-weight: bold; }
+        .main { display: flex; margin-top: 20px; }
+        .left-table { width: 50%; }
+        .left-table table { border-collapse: collapse; width: 100%; }
+        .left-table td, .left-table th { border: 1px solid #ccc; padding: 6px; }
+        .left-table th { background: #eee; text-align: left; }
+        .right-block { width: 50%; padding-left: 30px; font-size: 14px; }
+        .footer { border: 2px solid black; padding: 10px; margin-top: 30px; font-size: 12px; }
+        .contact { text-align: right; margin-top: 20px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/static/logo.png" alt="Logo">
+        <div class="title">Quittance de Loyer</div>
+        <div class="amount">{{ tenant['TTC'] }} FCFA</div>
+    </div>
+
+    <div class="main">
+        <div class="left-table">
+            <table>
+                <tr><th>Étage N°</th><td>{{ tenant['ETAGE'] }}</td></tr>
+                <tr><th>Appartement N°</th><td>{{ tenant['APT'] }}</td></tr>
+                <tr><th>Loyer</th><td>{{ tenant['LOYER'] }}</td></tr>
+                <tr><th>T.O.M</th><td>{{ tenant['TOM'] }}</td></tr>
+                <tr><th>T.L.V</th><td>{{ tenant['TLV'] }}</td></tr>
+                <tr><th>T.V.A</th><td>{{ tenant['TVA'] }}</td></tr>
+                <tr><th>Groupe Electrogène</th><td>{{ tenant['Group Electrogene'] }}</td></tr>
+                <tr><th>Total</th><td><strong>{{ tenant['TTC'] }} FCFA</strong></td></tr>
+            </table>
+        </div>
+        <div class="right-block">
+            <p>Reçu de : {{ tenant['NOM'] }}</p>
+            <p>La Somme de : {{ tenant['MONTANT EN LETTRE'] }}</p>
+            <p>Pour le montant d’un loyer {{ month_label }}</p>
+            <p>Locaux qu’il occupe, situés: {{ tenant['ADRESS'] }}</p>
+            <p>A L’Immeuble {{ tenant['building'] }}</p>
+            <p>Le dit commençant le {{ tenant['start_date'] }} finissant le {{ tenant['end_date'] }}</p>
+            <p>Loyer, Sous réserves de droit.</p>
+            <p>DONT QUITTANCE Le {{ tenant['issue_date'] }}</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <strong>NOTA:</strong><br>
+        /Un locataire ne peut déménager sans :<br>
+        Qu’il n’ait justifié au propriétaire par une quittance du percepteur qu’il s’est bien acquitté<br>
+        de toutes ses contributions personnelles et mobilières de l’année en cours.<br>
+        Qu’il n’ait donné ou reçu congé par écrit dans les délais prévus par le contrat.<br>
+        Qu’il ne se soit acquitté de ses consommations d’Eau/SDE et d’Électricité/SENELEC<br>
+        Qu’il n’ait fait faire toutes les réparations locatives à sa charge suivant l’usage et d’après l’<br>
+        état des lieux s’il en existe.<br><br>
+        B:/Un locataire ne peut sous-louer tout ou partie des locaux loués sans l’aval ou le consentement écrit du propriétaire.
+    </div>
+
+    <div class="contact">
+        52 Rue Galandou Diouf X Raffanel<br>
+        BP 19087 Guediawaye<br>
+        Tel: (221) 33 822 89 99<br>
+        Fax: (221) 33 821 62 61
+    </div>
+</body>
+</html>
