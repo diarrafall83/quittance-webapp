@@ -15,8 +15,9 @@
         .left-table td, .left-table th { border: 1px solid #ccc; padding: 6px; }
         .left-table th { background: #eee; text-align: left; }
         .right-block { width: 50%; padding-left: 30px; font-size: 14px; }
-        .footer { border: 2px solid black; padding: 10px; margin-top: 30px; font-size: 12px; }
-        .contact { text-align: right; margin-top: 20px; font-size: 12px; }
+        .footer-container { display: flex; justify-content: space-between; border: 2px solid black; padding: 10px; margin-top: 30px; font-size: 12px; }
+        .footer-nota { width: 60%; }
+        .footer-contact { width: 38%; text-align: right; }
     </style>
 </head>
 <body>
@@ -51,23 +52,24 @@
         </div>
     </div>
 
-    <div class="footer">
-        <strong>NOTA:</strong><br>
-        /Un locataire ne peut déménager sans :<br>
-        Qu’il n’ait justifié au propriétaire par une quittance du percepteur qu’il s’est bien acquitté<br>
-        de toutes ses contributions personnelles et mobilières de l’année en cours.<br>
-        Qu’il n’ait donné ou reçu congé par écrit dans les délais prévus par le contrat.<br>
-        Qu’il ne se soit acquitté de ses consommations d’Eau/SDE et d’Électricité/SENELEC<br>
-        Qu’il n’ait fait faire toutes les réparations locatives à sa charge suivant l’usage et d’après l’<br>
-        état des lieux s’il en existe.<br><br>
-        B:/Un locataire ne peut sous-louer tout ou partie des locaux loués sans l’aval ou le consentement écrit du propriétaire.
-    </div>
-
-    <div class="contact">
-        52 Rue Galandou Diouf X Raffanel<br>
-        BP 19087 Guediawaye<br>
-        Tel: (221) 33 822 89 99<br>
-        Fax: (221) 33 821 62 61
+    <div class="footer-container">
+        <div class="footer-nota">
+            <strong>NOTA:</strong><br>
+            /Un locataire ne peut déménager sans :<br>
+            Qu’il n’ait justifié au propriétaire par une quittance du percepteur qu’il s’est bien acquitté<br>
+            de toutes ses contributions personnelles et mobilières de l’année en cours.<br>
+            Qu’il n’ait donné ou reçu congé par écrit dans les délais prévus par le contrat.<br>
+            Qu’il ne se soit acquitté de ses consommations d’Eau/SDE et d’Électricité/SENELEC<br>
+            Qu’il n’ait fait faire toutes les réparations locatives à sa charge suivant l’usage et d’après l’<br>
+            état des lieux s’il en existe.<br><br>
+            B:/Un locataire ne peut sous-louer tout ou partie des locaux loués sans l’aval ou le consentement écrit du propriétaire.
+        </div>
+        <div class="footer-contact">
+            52 Rue Galandou Diouf X Raffanel<br>
+            BP 19087 Guediawaye<br>
+            Tel: (221) 33 822 89 99<br>
+            Fax: (221) 33 821 62 61
+        </div>
     </div>
 </body>
 </html>
