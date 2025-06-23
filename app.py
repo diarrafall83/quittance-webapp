@@ -1,7 +1,7 @@
 from flask import Flask, render_template_string, render_template, redirect, url_for, make_response, request
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 import traceback
 import os
 from datetime import datetime
@@ -58,7 +58,7 @@ def show_building(name):
             else:
                 html += f"<td><a href='/quittance/{name}/{i}?month={month}&year={year}'>🧾 Générer</a> | <a href='/quittance/{name}/{i}/pdf?month={month}&year={year}'>📄 PDF</a></td>"
             html += "</tr>"
-        html += "</table><br><a href='/'>← Retour</a>"
+        html += f"</table><br><a href='/quittance/{name}/batch?month={month}&year={year}'>📥 Imprimer tout (ZIP)</a><br><a href='/'>← Retour</a>"
         return render_template_string(html)
     except Exception as e:
         return f"<h3>Erreur: {name}</h3><pre>{e}</pre>"
@@ -84,7 +84,7 @@ def generate_quittance(building, index):
         tenant = rows[index]
 
         tenant_data = enrich_tenant_data(building, dict(zip(header, tenant)), month, year)
-        return render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'])
+        return render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
     except Exception as e:
         return f"<h3>Erreur quittance:</h3><pre>{e}</pre>"
 
@@ -101,8 +101,9 @@ def quittance_pdf(building, index):
         tenant = rows[index]
 
         tenant_data = enrich_tenant_data(building, dict(zip(header, tenant)), month, year)
-        html_out = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'])
-        pdf = HTML(string=html_out).write_pdf()
+        html_out = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
+        css = CSS(string='@page { size: A4; margin: 1cm } body { font-family: Arial; }')
+        pdf = HTML(string=html_out).write_pdf(stylesheets=[css])
 
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
@@ -130,8 +131,9 @@ def quittance_batch(building):
             for i, row in enumerate(rows):
                 if i == 0: continue
                 tenant_data = enrich_tenant_data(building, dict(zip(header, row)), month, year)
-                html_out = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'])
-                pdf = HTML(string=html_out).write_pdf()
+                html_out = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
+                css = CSS(string='@page { size: A4; margin: 1cm } body { font-family: Arial; }')
+                pdf = HTML(string=html_out).write_pdf(stylesheets=[css])
                 filename = f"quittance_{tenant_data.get('NOM', 'tenant')}_{i}.pdf"
                 zip_file.writestr(filename, pdf)
 
@@ -143,4 +145,3 @@ def quittance_batch(building):
 
     except Exception as e:
         return f"<h3>Erreur Batch PDF:</h3><pre>{e}</pre>"
-
