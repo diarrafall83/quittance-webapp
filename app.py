@@ -58,7 +58,7 @@ def show_building(name):
             else:
                 html += f"<td><a href='/quittance/{name}/{i}?month={month}&year={year}'>🧾 Générer</a> | <a href='/quittance/{name}/{i}/pdf?month={month}&year={year}'>📄 PDF</a></td>"
             html += "</tr>"
-        html += f"</table><br><a href='/quittance/{name}/batch?month={month}&year={year}'>📥 Imprimer tout (ZIP)</a><br><a href='/'>← Retour</a>"
+        html += f"</table><br><a href='/quittance/{name}/pdf?month={month}&year={year}'>📥 PDF Global</a><br><a href='/'>← Retour</a>"
         return render_template_string(html)
     except Exception as e:
         return f"<h3>Erreur: {name}</h3><pre>{e}</pre>"
@@ -103,7 +103,7 @@ def quittance_pdf(building, index):
         tenant_data = enrich_tenant_data(building, dict(zip(header, tenant)), month, year)
         html_out = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
         css = CSS(string='@page { size: A4; margin: 1cm } body { font-family: Arial; }')
-        pdf = HTML(string=html_out).write_pdf(stylesheets=[css])
+        pdf = HTML(string=html_out, base_url=request.host_url).write_pdf(stylesheets=[css])
 
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
@@ -112,11 +112,10 @@ def quittance_pdf(building, index):
     except Exception as e:
         return f"<h3>Erreur PDF:</h3><pre>{e}</pre>"
 
-@app.route("/quittance/<building>/batch")
-def quittance_batch(building):
+@app.route("/quittance/<building>/pdf")
+def quittance_merged_pdf(building):
     try:
-        from zipfile import ZipFile
-        import io
+        from weasyprint import HTML
 
         month = request.args.get("month", datetime.now().strftime("%B"))
         year = request.args.get("year", datetime.now().strftime("%Y"))
@@ -126,22 +125,25 @@ def quittance_batch(building):
         rows = ws.get_all_values()
         header = rows[0]
 
-        zip_buffer = io.BytesIO()
-        with ZipFile(zip_buffer, 'w') as zip_file:
-            for i, row in enumerate(rows):
-                if i == 0: continue
-                tenant_data = enrich_tenant_data(building, dict(zip(header, row)), month, year)
-                html_out = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
-                css = CSS(string='@page { size: A4; margin: 1cm } body { font-family: Arial; }')
-                pdf = HTML(string=html_out).write_pdf(stylesheets=[css])
-                filename = f"quittance_{tenant_data.get('NOM', 'tenant')}_{i}.pdf"
-                zip_file.writestr(filename, pdf)
+        blocks = []
+        for i, row in enumerate(rows):
+            if i == 0: continue
+            tenant_data = enrich_tenant_data(building, dict(zip(header, row)), month, year)
+            html_block = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
+            blocks.append(html_block)
 
-        zip_buffer.seek(0)
-        response = make_response(zip_buffer.read())
-        response.headers['Content-Type'] = 'application/zip'
-        response.headers['Content-Disposition'] = f"attachment; filename=quittances_{building}_{month}_{year}.zip"
+        double_per_page = "".join(
+            f"<div style='display:flex;flex-direction:column;height:50%;page-break-inside:avoid'>{blocks[i]}</div>" +
+            (f"<div style='display:flex;flex-direction:column;height:50%;page-break-after:always'>{blocks[i+1]}</div>" if i+1 < len(blocks) else "")
+            for i in range(0, len(blocks), 2)
+        )
+        html_out = f"<html><body>{double_per_page}</body></html>"
+
+        pdf = HTML(string=html_out, base_url=request.host_url).write_pdf(stylesheets=[CSS(string='@page { size: A4; margin: 1cm }')])
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f"inline; filename=quittances_{building}_{month}_{year}.pdf"
         return response
 
     except Exception as e:
-        return f"<h3>Erreur Batch PDF:</h3><pre>{e}</pre>"
+        return f"<h3>Erreur PDF Global:</h3><pre>{e}</pre>"
