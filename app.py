@@ -25,7 +25,51 @@ def get_gsheet():
     except Exception as e:
         raise RuntimeError(f"🔴 get_gsheet() error:\n{traceback.format_exc()}")
 
-# ... all previous routes ...
+@app.route("/")
+def list_buildings():
+    try:
+        sheet = get_gsheet()
+        tabs = sheet.worksheets()
+        html = "<h2>🏢 Sélectionner un bâtiment</h2><ul>"
+        for tab in tabs:
+            html += f"<li><a href='/building/{tab.title}'>{tab.title}</a></li>"
+        html += "</ul>"
+        return render_template_string(html)
+    except Exception as e:
+        return f"<h3>Erreur Google Sheet:</h3><pre>{e}</pre>"
+
+@app.route("/building/<path:name>", methods=['GET'])
+def show_building(name):
+    try:
+        name = unquote(name)
+        month = request.args.get("month") or datetime.now().strftime("%B")
+        year = request.args.get("year") or datetime.now().strftime("%Y")
+
+        sheet = get_gsheet()
+        ws = sheet.worksheet(name)
+        rows = ws.get_all_values()
+        html = f"<h2>👥 Locataires - {name}</h2><table border='1'>"
+        for i, row in enumerate(rows):
+            html += "<tr>"
+            for cell in row:
+                html += f"<td>{cell}</td>"
+            if i == 0:
+                html += "<td>Action</td>"
+            else:
+                html += f"<td><a href='/quittance/{name}/{i}?month={month}&year={year}'>🧾 Générer</a> | <a href='/quittance/{name}/{i}/pdf?month={month}&year={year}'>📄 PDF</a></td>"
+            html += "</tr>"
+        html += f"</table><br><a href='/quittance/{name}/pdf?month={month}&year={year}'>📥 PDF Global</a><br><a href='/'>← Retour</a>"
+        return render_template_string(html)
+    except Exception as e:
+        return f"<h3>Erreur: {name}</h3><pre>{e}</pre>"
+
+def enrich_tenant_data(building, tenant_data, month, year):
+    tenant_data['building'] = building
+    tenant_data['month_label'] = f"{month} {year}"
+    tenant_data['start_date'] = f"01/{month}/{year}"
+    tenant_data['end_date'] = f"30/{month}/{year}"
+    tenant_data['issue_date'] = datetime.now().strftime("%d/%m/%Y")
+    return tenant_data
 
 @app.route("/quittance/<building>/pdf")
 def quittance_merged_pdf(building):
