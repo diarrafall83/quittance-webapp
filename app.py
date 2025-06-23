@@ -115,8 +115,6 @@ def quittance_pdf(building, index):
 @app.route("/quittance/<building>/pdf")
 def quittance_merged_pdf(building):
     try:
-        from weasyprint import HTML
-
         month = request.args.get("month", datetime.now().strftime("%B"))
         year = request.args.get("year", datetime.now().strftime("%Y"))
 
@@ -132,13 +130,13 @@ def quittance_merged_pdf(building):
             try:
                 tenant_data = enrich_tenant_data(building, dict(zip(header, row)), month, year)
                 html_block = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
-                blocks.append(f"<div style='padding: 10px; min-height: 520px; page-break-inside: avoid;'>{html_block}</div>")
+                blocks.append(f"<div style='padding: 10px; min-height: 450px; page-break-inside: avoid;'>{html_block}</div>")
             except Exception as inner:
                 print(f"Error rendering row {i}: {inner}")
                 continue
 
         double_per_page = "".join(
-            f"<div style='page-break-after: always'>{blocks[i]}{blocks[i+1] if i+1 < len(blocks) else ''}</div>"
+            f"<div style='height: 100%; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always'>{blocks[i]}{blocks[i+1] if i+1 < len(blocks) else ''}</div>"
             for i in range(0, len(blocks), 2)
         )
         html_out = f"<html><body>{double_per_page}</body></html>"
