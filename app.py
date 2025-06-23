@@ -56,7 +56,7 @@ def show_building(name):
             if i == 0:
                 html += "<td>Action</td>"
             else:
-                html += f"<td><a href='/quittance/{name}/{i}'>🧾 Générer</a> | <a href='/quittance/{name}/{i}/pdf'>📄 PDF</a></td>"
+                html += f"<td><a href='/quittance/{name}/{i}?month={month}&year={year}'>🧾 Générer</a> | <a href='/quittance/{name}/{i}/pdf?month={month}&year={year}'>📄 PDF</a></td>"
             html += "</tr>"
         html += "</table><br><a href='/'>← Retour</a>"
         return render_template_string(html)
@@ -106,7 +106,7 @@ def quittance_pdf(building, index):
 
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'inline; filename=quittance_{tenant_data.get("NOM", "tenant")}.pdf'
+        response.headers['Content-Disposition'] = f"inline; filename=quittance_{tenant_data.get('NOM', 'tenant')}.pdf"
         return response
     except Exception as e:
         return f"<h3>Erreur PDF:</h3><pre>{e}</pre>"
@@ -138,8 +138,9 @@ def quittance_batch(building):
         zip_buffer.seek(0)
         response = make_response(zip_buffer.read())
         response.headers['Content-Type'] = 'application/zip'
-        response.headers['Content-Disposition'] = f'attachment; filename="quittances_{building}_{month}_{year}.zip"'
+        response.headers['Content-Disposition'] = f"attachment; filename=quittances_{building}_{month}_{year}.zip"
         return response
 
     except Exception as e:
         return f"<h3>Erreur Batch PDF:</h3><pre>{e}</pre>"
+
