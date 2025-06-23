@@ -130,11 +130,10 @@ def quittance_merged_pdf(building):
             if i == 0: continue
             tenant_data = enrich_tenant_data(building, dict(zip(header, row)), month, year)
             html_block = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
-            blocks.append(html_block)
+            blocks.append(f"<div style='width:50%;padding:10px;'>{html_block}</div>")
 
         double_per_page = "".join(
-            f"<div style='display:flex;flex-direction:column;height:50%;page-break-inside:avoid'>{blocks[i]}</div>" +
-            (f"<div style='display:flex;flex-direction:column;height:50%;page-break-after:always'>{blocks[i+1]}</div>" if i+1 < len(blocks) else "")
+            f"<div style='display:flex;flex-direction:row;justify-content:space-between;page-break-after:always'>{blocks[i]}{blocks[i+1] if i+1 < len(blocks) else ''}</div>"
             for i in range(0, len(blocks), 2)
         )
         html_out = f"<html><body>{double_per_page}</body></html>"
