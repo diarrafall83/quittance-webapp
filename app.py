@@ -71,6 +71,47 @@ def enrich_tenant_data(building, tenant_data, month, year):
     tenant_data['issue_date'] = datetime.now().strftime("%d/%m/%Y")
     return tenant_data
 
+@app.route("/quittance/<building>/<int:index>")
+def generate_quittance(building, index):
+    try:
+        month = request.args.get("month", datetime.now().strftime("%B"))
+        year = request.args.get("year", datetime.now().strftime("%Y"))
+
+        sheet = get_gsheet()
+        ws = sheet.worksheet(building)
+        rows = ws.get_all_values()
+        header = rows[0]
+        tenant = rows[index]
+
+        tenant_data = enrich_tenant_data(building, dict(zip(header, tenant)), month, year)
+        return render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
+    except Exception as e:
+        return f"<h3>Erreur quittance:</h3><pre>{e}</pre>"
+
+@app.route("/quittance/<building>/<int:index>/pdf")
+def quittance_pdf(building, index):
+    try:
+        month = request.args.get("month", datetime.now().strftime("%B"))
+        year = request.args.get("year", datetime.now().strftime("%Y"))
+
+        sheet = get_gsheet()
+        ws = sheet.worksheet(building)
+        rows = ws.get_all_values()
+        header = rows[0]
+        tenant = rows[index]
+
+        tenant_data = enrich_tenant_data(building, dict(zip(header, tenant)), month, year)
+        html_out = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
+        css = CSS(string='@page { size: A4; margin: 1cm } body { font-family: Arial; }')
+        pdf = HTML(string=html_out, base_url=request.host_url).write_pdf(stylesheets=[css])
+
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f"inline; filename=quittance_{tenant_data.get('NOM', 'tenant')}.pdf"
+        return response
+    except Exception as e:
+        return f"<h3>Erreur PDF:</h3><pre>{e}</pre>"
+
 @app.route("/quittance/<building>/pdf")
 def quittance_merged_pdf(building):
     try:
@@ -91,13 +132,13 @@ def quittance_merged_pdf(building):
             try:
                 tenant_data = enrich_tenant_data(building, dict(zip(header, row)), month, year)
                 html_block = render_template("quittance.html", tenant=tenant_data, month_label=tenant_data['month_label'], footer_split=True)
-                blocks.append(f"<div style='width:50%;padding:10px;'>{html_block}</div>")
+                blocks.append(f"<div style='padding: 10px; min-height: 520px; page-break-inside: avoid;'>{html_block}</div>")
             except Exception as inner:
                 print(f"Error rendering row {i}: {inner}")
                 continue
 
         double_per_page = "".join(
-            f"<div style='display:flex;flex-direction:row;justify-content:space-between;page-break-after:always'>{blocks[i]}{blocks[i+1] if i+1 < len(blocks) else ''}</div>"
+            f"<div style='page-break-after: always'>{blocks[i]}{blocks[i+1] if i+1 < len(blocks) else ''}</div>"
             for i in range(0, len(blocks), 2)
         )
         html_out = f"<html><body>{double_per_page}</body></html>"
